@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guardify - Evidence Intelligence Suite</title>
+    <meta name="description" content="Streamline your most time consuming evidence workflows" />
+    <!-- Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CDN (for utility classes used throughout the page) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      
+      
+      
+      
+      
+      
+      
+      
+      /* Hamburger button styling */
+      #mobileMenuBtn {
+        background-color: #007ECF;
+        color: #ffffff; /* makes the SVG bars white when using currentColor */
+        border-radius: 10px;
+        width: 44px; height: 44px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      }
+      #mobileMenu {
+        z-index: 49; /* below the fixed nav (z-40) but above content */
+      }
+/* Mobile-only adjustments (<= 767px) */
+      @media (max-width: 767px) {
+        /* Top bar: show ONLY Customer Login, centered */
+        .annbar .ann-msg, .annbar .ann-contact { display: none !important; }
+        .annbar .page-container { justify-content: center !important; }
+        /* Nav: hide "Schedule a Demo" button, show hamburger button */
+        header .demo-link { display: none !important; }
+        header #mobileMenuBtn { display: inline-flex !important; }
+        /* Footer: stack CTAs and improve tap targets */
+        footer .flex.items-center.space-x-6 { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+        footer .flex.items-center.space-x-6 a button { width: 100%; }
+        footer .flex.flex-wrap.gap-8 { gap: 0.75rem; }
+        footer p, footer a { font-size: 0.95rem; }
+      }
+@media (prefers-reduced-motion: reduce) {
+        .animate-on-scroll, .slide-left, .slide-right {
+          transition: none !important;
+          transform: none !important;
+          opacity: 1 !important;
+        }
+      }
+body {  background: linear-gradient(to bottom, #cce2f2 0%, #ffffff 100%);  background-repeat: no-repeat;  background-attachment: scroll;  background-size: 100% 100%;  min-height: 100vh;}
+
+
+
+/* Sticky announcement and nav */
+      .annbar {
+        position: fixed; top: 0; left: 0; right: 0;
+        background-color:#032069;
+      }
+      .topnav {
+        position: fixed; left: 0; right: 0;
+        background: white;
+      }
+/* Base theme tokens inspired by globals.css */
+      :root {
+        --background: oklch(1 0 0);
+        --foreground: oklch(0.145 0 0);
+        --border: oklch(0.922 0 0);
+      }
+
+      html, body { height: 100%; }
+      body {color: var(--foreground);
+        font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+      }
+
+      /* Custom hover & animation helpers from page.tsx */
+      .nav-link:hover { color: #0075D1 !important; }
+      .footer-link:hover { color: #0075D1 !important; }
+      .footer-button:hover { background-color: #0075D1 !important; border-color: white !important; }
+      .blue-button:hover { background-color: #0056A3 !important; }
+
+      .animate-on-scroll, .slide-left, .slide-right {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .slide-left { transform: translateX(-50px) translateY(30px); }
+      .slide-right { transform: translateX(50px) translateY(30px); }
+      .animate-in { opacity: 1 !important; transform: translateY(0) translateX(0) !important; }
+
+      h1, h2, h3 { color: #191c35 !important; }
+      p { color: black !important; }
+      footer p { color: white !important; }
+
+      /* Page container side padding (desktop) */
+      .page-container { padding-left: 260px; padding-right: 260px; }
+      @media (max-width: 1024px) {
+        .page-container { padding-left: 2rem; padding-right: 2rem; }
+      }
+
+      /* Modal styles */
+      .modal-overlay {
+        position: fixed; inset: 0;
+        background-color: rgba(0,0,0,0.8);
+        display: none;
+        align-items: center; justify-content: center;
+        z-index: 1000; backdrop-filter: blur(4px);
+      }
+      .modal-overlay.open { display: flex; }
+      .modal-content {
+        position: relative; background: black; border-radius: 12px;
+        overflow: hidden; max-width: 90vw; max-height: 90vh;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      }
+      .modal-close {
+        position: absolute; top: 16px; right: 16px;
+        background: rgba(0,0,0,0.7); color: white; border: none;
+        border-radius: 9999px; width: 40px; height: 40px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; z-index: 1001; transition: background-color .2s;
+      }
+      .modal-close:hover { background: rgba(0,0,0,0.9); }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Announcement Bar -->
+    <div class="annbar z-50 text-white py-3 px-4 text-sm" style="background-color:#032069">
+      <div class="page-container flex items-center justify-between">
+        <a href="https://guardify.com/new/" class="ann-msg text-white hover:text-blue-200 font-semibold">
+          Curious what's new? Click to explore Guardify's latest tools and updates
+        </a>
+        <div class="flex items-center space-x-6">
+          <a href="https://guardify.com/contact/" class="ann-contact text-white footer-link font-medium">Contact</a>
+          <a href="https://app.guardify.com/" class="ann-login text-white footer-link font-medium flex items-center">
+            <i class="fa-solid fa-user mr-2"></i>
+            Customer Login
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="topnav z-40 bg-white shadow-sm border-b border-[color:var(--border)]">
+      <div class="page-container">
+        <nav class="flex items-center justify-between py-4">
+          <div class="flex items-center">
+            <a href="https://guardify.com">
+              <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Guardify" class="h-8" />
+            </a>
+          <button id="mobileMenuBtn" class="md:hidden inline-flex items-center justify-center p-2 ml-3 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+        </button></div>
+          <div class="hidden md:flex items-center space-x-8">
+          <div id="mobileMenu" class="hidden mt-2 w-full" role="region" aria-label="Mobile navigation">
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-lg flex flex-col gap-3">
+              <a href="https://guardify.com/evidence-made-easy/#features" class="text-gray-700 nav-link font-medium">Features</a>
+              <a href="https://guardify.com/statewide/" class="text-gray-700 nav-link font-medium">Industry</a>
+              <a href="https://guardify.com/resources/" class="text-gray-700 nav-link font-medium">Resources</a>
+              <a href="https://guardify.com/pricing/" class="text-gray-700 nav-link font-medium">Pricing</a>
+            </div>
+          </div>
+    
+            <a href="https://guardify.com/evidence-made-easy/#features" class="text-gray-700 nav-link font-medium">Features</a>
+            <a href="https://guardify.com/statewide/" class="text-gray-700 nav-link font-medium">Industry</a>
+            <a href="https://guardify.com/resources/" class="text-gray-700 nav-link font-medium">Resources</a>
+            <a href="https://guardify.com/pricing/" class="text-gray-700 nav-link font-medium">Pricing</a>
+          </div>
+          <div class="flex items-center">
+            <a href="https://guardify.com/schedule-a-demo/" class="demo-link">
+              <button class="text-white px-6 py-2 font-medium blue-button rounded" style="background-color:#0179CA">
+                Schedule a Demo
+              </button>
+            </a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="py-20">
+      <div class="page-container">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div class="slide-left">
+            <h1 class="text-4xl lg:text-[42px] font-bold mb-6 leading-tight lg:whitespace-nowrap">Evidence Intelligence Suite</h1>
+            <p class="text-xl mb-8 leading-relaxed">Streamline your most time consuming evidence workflows</p>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a href="https://tools.guardify.com/auth/signup/">
+                <button class="text-white px-8 py-3 font-semibold blue-button rounded" style="background-color:#0179CA">
+                  Get Started Securely
+                </button>
+              </a>
+              <button id="openModalBtn" class="text-white px-8 py-3 font-semibold blue-button rounded" style="background-color:#0179CA">
+                Watch a Demo
+              </button>
+            </div>
+          </div>
+          <div class="lg:text-right slide-right">
+            <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Evidence Intelligence" class="rounded-lg shadow-lg ml-auto" style="width:610px;height:385px;object-fit:cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="py-16">
+      <div class="page-container">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center animate-on-scroll">
+          <div>
+            <div class="text-4xl font-bold mb-2" style="color:#191c35">99.9%</div>
+            <div class="font-medium" style="color:black">Accuracy Rate</div>
+          </div>
+          <div>
+            <div class="text-4xl font-bold mb-2" style="color:#191c35">10x</div>
+            <div class="font-medium" style="color:black">Faster Processing</div>
+          </div>
+          <div>
+            <div class="text-4xl font-bold mb-2" style="color:#191c35">1M+</div>
+            <div class="font-medium" style="color:black">Files Processed</div>
+          </div>
+          <div>
+            <div class="text-4xl font-bold mb-2" style="color:#191c35">24/7</div>
+            <div class="font-medium" style="color:black">Support Available</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-20">
+      <div class="page-container">
+        <div class="text-center mb-16 animate-on-scroll">
+          <h2 class="text-4xl font-bold mb-4">Because Every Detail Deserves to Be Seen</h2>
+          <p class="text-xl max-w-3xl mx-auto">
+            Guardify's Evidence Intelligence Suite helps frontline professionals uncover truth faster—bringing clarity to the moments that matter most.
+          </p>
+        </div>
+
+        <div class="space-y-20">
+          <!-- Evidence Assistant -->
+          <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="slide-left">
+              <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Evidence Assistant Interface" class="w-full rounded-lg shadow-lg" style="width:575px;height:385px;object-fit:cover" />
+            </div>
+            <div class="slide-right">
+              <h3 class="text-3xl font-bold mb-6">Evidence Assistant</h3>
+              <p class="text-lg leading-relaxed">
+                Upload any file and ask questions in your own words. Instantly get summaries, timestamped answers, PDF redactions, and AI outputs modeled after the reference sets you provide—whether that's statutes, guidelines, or reports. Uncover key facts without scouring pages of documents or hours of video.
+              </p>
+            </div>
+          </div>
+
+          <!-- Secure Redaction -->
+          <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="lg:order-2 slide-right">
+              <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Secure Redaction Interface" class="w-full rounded-lg shadow-lg" style="width:575px;height:385px;object-fit:cover" />
+            </div>
+            <div class="lg:order-1 slide-left">
+              <h3 class="text-3xl font-bold mb-6">Secure Redaction</h3>
+              <p class="text-lg leading-relaxed">
+                Permanently remove sensitive personally identifiable information from video, audio, documents, and images with precision tools that allow you to keep non-sensitive elements visible for clarity and context.
+              </p>
+            </div>
+          </div>
+
+          <!-- Transcription & Translation -->
+          <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="slide-left">
+              <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Transcription & Translation Interface" class="w-full rounded-lg shadow-lg" style="width:575px;height:385px;object-fit:cover" />
+            </div>
+            <div class="slide-right">
+              <h3 class="text-3xl font-bold mb-6">Transcription & Translation</h3>
+              <p class="text-lg leading-relaxed">
+                Turn audio and video into searchable, speaker-identified text, and instantly translate content into 100+ languages to break down communication barriers in any investigation.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-16 animate-on-scroll">
+          <a href="https://tools.guardify.com/auth/signup/">
+            <button class="text-white px-8 py-3 font-semibold blue-button rounded" style="background-color:#0179CA">
+              Try Evidence Tools Today
+            </button>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonial -->
+    <section class="py-20">
+      <div class="page-container">
+        <div class="text-center mb-16 animate-on-scroll">
+          <h2 class="text-4xl font-bold mb-4">Results That Matter</h2>
+          <p class="text-xl max-w-3xl mx-auto">
+            More than 40,000 law enforcement officers nationwide rely on Guardify to process digital evidence faster and with greater accuracy.
+          </p>
+        </div>
+
+        <div class="max-w-6xl mx-auto animate-on-scroll">
+          <div class="bg-white rounded-lg shadow-lg p-8 lg:p-12">
+            <div class="grid lg:grid-cols-2 gap-8 items-start">
+              <div>
+                <div class="mb-6">
+                  <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Quote" class="w-16 h-16 text-gray-400" />
+                </div>
+                <blockquote class="text-lg mb-6 leading-relaxed" style="color:black">
+                  <span class="text-blue-600 font-semibold">Guardify's AI-powered video analysis has transformed how we process digital evidence.</span>
+                  The ability to automatically detect key subjects and extract relevant data has significantly reduced review time, allowing us to focus on building stronger cases with greater accuracy.
+                </blockquote>
+                <div class="font-semibold" style="color:#191c35">Law Enforcement Investigator</div>
+                <div style="color:black">California</div>
+              </div>
+
+              <div class="flex justify-center lg:justify-end">
+                <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Police Officer using mobile device" class="rounded-lg shadow-lg w-full" style="max-width:500px;height:auto" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Industries -->
+    <section class="py-20">
+      <div class="page-container">
+        <div class="text-center mb-16 animate-on-scroll">
+          <h2 class="text-4xl font-bold mb-4">Trusted Across Industries</h2>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+          <div class="flex gap-6 slide-left">
+            <div class="flex-shrink-0">
+              <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Law Enforcement" class="w-16 h-16 text-gray-600" />
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold mb-4">Law Enforcement</h3>
+              <p class="leading-relaxed">
+                AI-powered transcription, redaction, and secure sharing transform digital evidence management while CJIS-, HIPAA-, and SOC 2-compliant workflows preserve chain of custody.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-6 slide-right">
+            <div class="flex-shrink-0">
+              <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Child Advocacy" class="w-16 h-16 text-gray-600" />
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold mb-4">Child Advocacy</h3>
+              <p class="leading-relaxed">
+                Trauma-informed evidence gathering with built-in redaction, centralized storage, and secure sharing protects privacy and streamlines collaboration.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-6 slide-left">
+            <div class="flex-shrink-0">
+              <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Legal Professionals" class="w-16 h-16 text-gray-600" />
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold mb-4">Legal Professionals</h3>
+              <p class="leading-relaxed">
+                From discovery to courtroom, AI summaries, redaction, and audit trails deliver fast, tamper-evident evidence management that strengthens case preparation.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-6 slide-right">
+            <div class="flex-shrink-0">
+              <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Health Care" class="w-16 h-16 text-gray-600" />
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold mb-4">Health Care</h3>
+              <p class="leading-relaxed">
+                HIPAA-compliant transcription, translation, and authentication tools help providers and nurses manage sensitive medical-legal records with integrity.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-12 animate-on-scroll">
+          <a href="https://guardify.com/evidence-made-easy/">
+            <button class="text-white px-8 py-3 font-semibold blue-button rounded" style="background-color:#0179CA">
+              Discover the Full Power of Guardify
+            </button>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20">
+      <div class="page-container">
+        <div class="text-center mb-12 animate-on-scroll">
+          <h2 class="text-4xl font-bold mb-4">Ready to Transform Your Workflow?</h2>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div class="slide-left">
+            <p class="text-xl mb-8 leading-relaxed">
+              Join the growing network of organizations that rely on Guardify's AI-powered evidence and data management solutions to enhance accuracy, improve speed, and compliance. Whether you need to protect sensitive records, streamline workflows, or ensure regulatory compliance, we have trusted solutions built for your industry.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a href="https://tools.guardify.com/auth/signup/">
+                <button class="text-white px-8 py-3 font-semibold blue-button rounded" style="background-color:#0179CA">
+                  Get Started Now
+                </button>
+              </a>
+              <a href="https://guardify.com/quote/">
+                <button class="text-white px-8 py-3 font-semibold blue-button rounded" style="background-color:#0179CA">
+                  Get a Custom Quote
+                </button>
+              </a>
+            </div>
+          </div>
+          <div class="lg:text-right slide-right">
+            <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Evidence Intelligence Demo" class="rounded-lg shadow-lg w-full max-w-md ml-auto" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="background-color:#181C35" class="text-white py-16">
+      <div class="page-container">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 pb-8">
+          <div class="flex items-center mb-6 lg:mb-0">
+            <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Guardify" class="h-16 mr-4" />
+            <p class="text-white text-lg font-medium">
+              Guardify is the leading cloud-based<br/>Digital Evidence Management solution.
+            </p>
+          </div>
+
+          <div class="flex items-center space-x-6">
+            <a href="https://app.guardify.com/" class="ann-login text-white footer-link font-medium flex items-center">
+              <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+              </svg>
+              Customer Login
+            </a>
+            <a href="https://guardify.com/schedule-a-demo/" class="demo-link">
+              <button class="border border-white text-white px-6 py-2 font-medium footer-button transition-colors rounded">Schedule a Demo</button>
+            </a>
+            <a href="https://guardify.com/free-trial">
+              <button class="border border-white text-white px-6 py-2 font-medium footer-button transition-colors rounded">Start Your Free Trial</button>
+            </a>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-600 mb-8"></div>
+
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+          <div class="flex flex-wrap gap-8 mb-6 lg:mb-0">
+            <a href="https://guardify.com/contact/" class="ann-contact text-white footer-link font-medium">Contact</a>
+            <a href="https://guardify.com/evidence-made-easy/" class="text-white footer-link font-medium">Platform</a>
+            <a href="https://guardify.com/evidence-made-easy" class="text-white footer-link font-medium">Products</a>
+            <a href="https://guardify.com/pricing/" class="text-white footer-link font-medium">Pricing</a>
+            <a href="https://guardify.com/premium-support/" class="text-white footer-link font-medium">Support</a>
+            <a href="https://guardify.com/resources/" class="text-white footer-link font-medium">Resources</a>
+          </div>
+
+          <div class="flex gap-6">
+            <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="CJIS Compliant" class="h-24" />
+            <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="HIPAA Compliant" class="h-24" />
+            <img decoding="async" loading="lazy" src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=3520&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="SOC 2 Compliant" class="h-24" />
+          </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row justify-between items-center pt-8">
+          <p class="text-white text-sm mb-4 md:mb-0">
+            © 2025 Guardify. All rights reserved.
+            <a href="https://guardify.com/privacy-policy/" class="footer-link hover:text-blue-300"> Privacy</a>.
+            <a href="https://guardify.com/compliance-and-security/" class="footer-link hover:text-blue-300"> Compliance</a>.
+            <a href="https://guardify.com/terms/" class="footer-link hover:text-blue-300"> Terms</a>.
+          </p>
+
+          <div class="flex space-x-4">
+            <a href="https://www.linkedin.com/company/getguardify/" class="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
+              <i class="fa-brands fa-linkedin-in text-xl"></i>
+            </a>
+            <a href="https://www.youtube.com/@GetGuardify" class="text-gray-400 hover:text-white transition-colors" aria-label="YouTube">
+              <i class="fa-brands fa-youtube text-xl"></i>
+            </a>
+            <a href="https://twitter.com/getguardify" class="text-gray-400 hover:text-white transition-colors" aria-label="X">
+              <i class="fa-brands fa-x-twitter text-xl"></i>
+            </a>
+            <a href="https://www.facebook.com/GetGuardify/" class="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
+              <i class="fa-brands fa-facebook-f text-xl"></i>
+            </a>
+            <a href="https://www.instagram.com/getguardify/" class="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
+              <i class="fa-brands fa-instagram text-xl"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modal markup -->
+    <div id="modal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Demo video">
+        <button id="closeModalBtn" class="modal-close" aria-label="Close modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <video width="800" height="450" controls class="w-full h-auto">
+          <source src="https://computervision-core-evie.s3.us-east-2.amazonaws.com/demo/video/dashboard-preview.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+
+    <script>
+      // Intersection Observer animations
+      (function () {
+        const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) entry.target.classList.add('animate-in');
+          });
+        }, observerOptions);
+        const els = document.querySelectorAll('.animate-on-scroll, .slide-left, .slide-right');
+        els.forEach((el) => observer.observe(el));
+      })();
+
+      // Modal controls
+      (function () {
+        const modal = document.getElementById('modal');
+        const openBtn = document.getElementById('openModalBtn');
+        const closeBtn = document.getElementById('closeModalBtn');
+
+        function openModal() {
+          modal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+          modal.setAttribute('aria-hidden', 'false');
+        }
+        function closeModal() {
+          modal.classList.remove('open');
+          document.body.style.overflow = '';
+          modal.setAttribute('aria-hidden', 'true');
+          // Pause any playing video
+          const vid = modal.querySelector('video');
+          if (vid) vid.pause();
+        }
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+      })();
+    </script>
+    <script>
+
+      // Sticky offsets: announcement bar + nav
+      (function () {
+        function applyOffsets() {
+          var ann = document.querySelector('.annbar');
+          var nav = document.querySelector('.topnav');
+          if (!ann || !nav) return;
+          var annH = ann.getBoundingClientRect().height;
+          nav.style.top = annH + 'px';
+          var navH = nav.getBoundingClientRect().height;
+          document.body.style.paddingTop = (annH + navH) + 'px';
+        }
+        window.addEventListener('load', applyOffsets);
+        window.addEventListener('resize', applyOffsets);
+        document.addEventListener('DOMContentLoaded', function(){ setTimeout(applyOffsets, 0); });
+      })();
+
+    </script>
+    <script>
+
+      // Mobile menu toggle (minimal; desktop unaffected)
+      (function () {
+        var btn = document.getElementById('mobileMenuBtn');
+        var panel = document.getElementById('mobileMenu');
+        if (!btn || !panel) return;
+        btn.addEventListener('click', function () {
+          var isHidden = panel.classList.toggle('hidden');
+          btn.setAttribute('aria-expanded', String(!isHidden));
+        });
+      })();
+
+    </script>
+    <script>
+
+      // Mobile menu toggle (ensures proper aria-expanded and visibility)
+      (function () {
+        function setupToggle(){
+          var btn = document.getElementById('mobileMenuBtn');
+          var panel = document.getElementById('mobileMenu');
+          if (!btn || !panel) return;
+          btn.addEventListener('click', function () {
+            var isHidden = panel.classList.toggle('hidden');
+            var expanded = !isHidden;
+            btn.setAttribute('aria-expanded', String(expanded));
+          }, { passive: true });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setupToggle);
+        } else {
+          setupToggle();
+        }
+      })();
+
+    </script>
+  
+    <script>
+      // Load Font Awesome CSS at the end to keep head clean and fetch icons
+      (function () {
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
+        l.crossOrigin = 'anonymous';
+        l.referrerPolicy = 'no-referrer';
+        document.head.appendChild(l);
+      })();
+    </script>
+</body>
+</html>
